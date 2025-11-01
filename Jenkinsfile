@@ -1,0 +1,49 @@
+@Library('jenkins-shared-lib') _
+
+pipeline {
+    agent { label 'Maven' }
+    tools { maven 'Maven-3.8.9' }
+
+    environment {
+        IMG = "ahmedezz799/shared-lib-jenkins"
+        TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/ahmedmohamedezz/jenkine_iti'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh "mvn clean package"
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                dockerBuild(IMG, TAG)
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                dockerLogin("ahmedezz799", "dockerhub-pass")
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                dockerPush(IMG, TAG)
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                dockerDeploy(IMG, TAG)
+            }
+        }
+    }
+}
